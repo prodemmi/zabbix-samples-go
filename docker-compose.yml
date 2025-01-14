@@ -1,0 +1,78 @@
+version: "3.7"
+services:
+  app:
+    build: ./app
+    expose:
+      - 3000
+    volumes:
+      - app_data:/app/logs
+    networks:
+      - net
+      
+  mobile-snmp:
+    build: ./mobile-snmp
+    networks:
+      - net
+
+  zabbix-agent-app:
+    image: zabbix/zabbix-agent
+    volumes:
+      - app_data:/app/logs/
+      - ./app/zabbix/:/etc/zabbix/zabbix_agentd.d/
+    environment:
+      - ZBX_HOSTNAME=zabbix-agent-app
+      - ZBX_SERVER_HOST=zabbix-server
+    depends_on:
+      - zabbix-server
+    networks:
+      - net
+
+  zabbix-postgres:
+    image: postgres:alpine3.19
+    environment:
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - net
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql
+    environment:
+      DB_SERVER_HOST: zabbix-postgres
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    depends_on:
+      - zabbix-postgres
+    ports:
+      - "10051:10051"
+    restart: unless-stopped
+    networks:
+      - net
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql
+    environment:
+      DB_SERVER_HOST: zabbix-postgres
+      ZBX_SERVER_HOST: zabbix-server
+      POSTGRES_DB: zabbix
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    depends_on:
+      - zabbix-postgres
+      - zabbix-server
+    ports:
+      - "8091:8080"
+    restart: unless-stopped
+    networks:
+      - net
+volumes:
+  db_data:
+  app_data:
+
+networks:
+  net:
+    driver: bridge
