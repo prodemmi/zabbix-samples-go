@@ -1,6 +1,6 @@
-# Prometheus Go Samples
+# Zabbix Go Samples
 
-This repository contains sample code for using Prometheus with Go. These examples demonstrate how to instrument Go applications with Prometheus metrics and set up a basic monitoring environment.
+This repository contains sample code for using Zabbix with Go. These examples demonstrate how to instrument Go applications with Zabbix monitoring and set up a basic monitoring environment.
 
 ## Contributing
 
@@ -12,5 +12,5 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Acknowledgements
 
-- [Prometheus](https://prometheus.io/)
+- [Zabbix](https://www.zabbix.com/)
 - [Go](https://golang.org/)
