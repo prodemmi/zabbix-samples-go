@@ -1,78 +1,55 @@
 version: "3.7"
 services:
-  app:
-    build: ./app
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    networks:
+      - net
+      - private
+
+  user-app:
+    build: ./user-app
     expose:
       - 3000
-    volumes:
-      - app_data:/app/logs
     networks:
-      - net
-      
-  mobile-snmp:
-    build: ./mobile-snmp
-    networks:
-      - net
+      - private
 
-  zabbix-agent-app:
-    image: zabbix/zabbix-agent
-    volumes:
-      - app_data:/app/logs/
-      - ./app/zabbix/:/etc/zabbix/zabbix_agentd.d/
-    environment:
-      - ZBX_HOSTNAME=zabbix-agent-app
-      - ZBX_SERVER_HOST=zabbix-server
-    depends_on:
-      - zabbix-server
-    networks:
-      - net
-
-  zabbix-postgres:
-    image: postgres:alpine3.19
-    environment:
-      POSTGRES_DB: zabbix
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    networks:
-      - net
-
-  zabbix-server:
-    image: zabbix/zabbix-server-pgsql
-    environment:
-      DB_SERVER_HOST: zabbix-postgres
-      POSTGRES_DB: zabbix
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-    depends_on:
-      - zabbix-postgres
+  jaeger:
+    image: jaegertracing/all-in-one
     ports:
-      - "10051:10051"
-    restart: unless-stopped
-    networks:
-      - net
-  zabbix-web:
-    image: zabbix/zabbix-web-nginx-pgsql
+      - 6831:6831/udp
+      - 6832:6832/udp
+      - 5778:5778
+      - 16686:16686
+      - 4317:4317
+      - 4318:4318
+      - 14250:14250
+      - 14268:14268
+      - 14269:14269
+      # - 9411:9411
+    volumes:
+      - ./jaeger:/etc/jaeger/configs/
+      - jaeger_data:/var/lib/jaeger
     environment:
-      DB_SERVER_HOST: zabbix-postgres
-      ZBX_SERVER_HOST: zabbix-server
-      POSTGRES_DB: zabbix
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-    depends_on:
-      - zabbix-postgres
-      - zabbix-server
-    ports:
-      - "8091:8080"
-    restart: unless-stopped
+      - JAEGER_DISABLED=true
+    command:
+      - --query.ui-config=/etc/jaeger/configs/config.json
     networks:
       - net
+      - private
+
+  # zipkin:
+  #   image: openzipkin/zipkin
+  #   ports:
+  #     - "9411:9411"
+  #   networks:
+  #     - net
+
 volumes:
-  db_data:
-  app_data:
+  jaeger_data:
 
 networks:
   net:
     driver: bridge
+  private:

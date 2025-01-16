@@ -1,0 +1,18 @@
+{
+    "mainTitle": "xyz",
+    "monitor": {
+        "mainTitle": "xyz",
+        "menuEnabled": true
+    },
+    "dependencies": {
+        "menuEnabled": true
+    },
+    "archiveEnabled": true,
+    "search": {
+        "maxLookback": {
+            "label": "2 Days",
+            "value": "2d"
+        },
+        "maxLimit": 1500
+    }
+}
